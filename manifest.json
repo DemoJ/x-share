@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "X Share",
+  "name": "X-Share",
   "version": "1.0",
   "description": "在 x.com 上分享帖子为精美图片",
   "permissions": [

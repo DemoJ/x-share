@@ -1,7 +1,7 @@
 if (typeof window.xShareScriptInjected === 'undefined') {
     window.xShareScriptInjected = true;
 
-    console.log("X Share content script loaded!");
+    console.log("X-Share content script loaded!");
 
     // X.com 是一个单页应用，所以我们需要观察 DOM 的变化
     // 来检测新的推文何时被添加到页面上。
