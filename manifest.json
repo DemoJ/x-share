@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "X Share",
+  "version": "1.0",
+  "description": "在 x.com 上分享帖子为精美图片",
+  "permissions": [
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "images/icon.png",
+    "48": "images/icon.png",
+    "128": "images/icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["lib/html2canvas.min.js", "content.js"],
+      "css": ["style.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["style.css"],
+      "matches": ["https://x.com/*", "https://twitter.com/*"]
+    }
+  ]
+}
