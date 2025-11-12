@@ -18,8 +18,8 @@
 
 ## 🚀 安装
 
-### 1. Chrome 网上应用店 (审核中)
-
+### 1. Chrome 网上应用商店
+[插件地址](https://chromewebstore.google.com/detail/x-share/lekkodmkcpbbjocdldmgepnepkkdiphl)
 
 
 ### 2. 本地安装 (开发者模式)
