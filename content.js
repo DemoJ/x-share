@@ -1,15 +1,13 @@
 if (typeof window.xShareScriptInjected === 'undefined') {
     window.xShareScriptInjected = true;
 
-    console.log("X-Share content script loaded!");
+    console.log("X-Share content script loaded! (Ultimate UI V4)");
 
-    // X.com 是一个单页应用，所以我们需要观察 DOM 的变化
-    // 来检测新的推文何时被添加到页面上。
     const observer = new MutationObserver((mutationsList, observer) => {
         for (const mutation of mutationsList) {
             if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1) { // 确保是元素节点
+                    if (node.nodeType === 1) {
                         if (node.matches('article')) {
                             addShareButton(node);
                         }
@@ -39,36 +37,52 @@ if (typeof window.xShareScriptInjected === 'undefined') {
         shareButton.innerText = '分享';
         shareButton.className = 'x-share-button';
 
-        // 修改：使用 async 函数以支持等待操作
         shareButton.addEventListener('click', async (event) => {
             event.stopPropagation();
             event.preventDefault();
 
-            // --- 新增逻辑开始 ---
-            // 检查是否有“显示更多”按钮
             const showMoreBtn = tweetElement.querySelector('[data-testid="tweet-text-show-more-link"]');
             if (showMoreBtn) {
-                console.log("检测到内容折叠，正在自动展开...");
                 showMoreBtn.click();
-                // 等待 500ms 让 React 完成渲染和文本展开
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
-            // --- 新增逻辑结束 ---
 
             const authorAvatar = tweetElement.querySelector('div[data-testid="Tweet-User-Avatar"] img[alt][draggable="true"]')?.src;
-            const authorName = tweetElement.querySelector('div[data-testid="User-Name"] span').innerText;
-            // 此时获取的 innerText 应该是展开后的全文
+            
+            const userInfoContainer = tweetElement.querySelector('div[data-testid="User-Name"]');
+            let authorName = '';
+            let authorHandle = '';
+
+            if (userInfoContainer) {
+                const textParts = userInfoContainer.innerText.split('\n');
+                if (textParts.length >= 1) {
+                    authorName = textParts[0];
+                    const handlePart = textParts.find(t => t.startsWith('@'));
+                    if (handlePart) {
+                        authorHandle = handlePart;
+                    }
+                }
+            }
+            
+            if (!authorName) {
+                authorName = tweetElement.querySelector('div[data-testid="User-Name"] span')?.innerText || 'Unknown';
+            }
+
             const tweetContent = tweetElement.querySelector('div[data-testid="tweetText"]')?.innerText;
             const timeElement = tweetElement.querySelector('time[datetime]');
             let tweetDate = '';
+            let tweetTimeFull = ''; 
+
             if (timeElement) {
                 const date = new Date(timeElement.getAttribute('datetime'));
-                // 将日期格式化为 月-日
-                tweetDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                tweetDate = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                tweetTimeFull = `${hours}:${minutes}`;
             }
 
             if (authorAvatar && authorName && tweetContent) {
-                generateShareImage({ authorAvatar, authorName, tweetContent, tweetDate });
+                generateShareImage({ authorAvatar, authorName, authorHandle, tweetContent, tweetDate, tweetTimeFull });
             } else {
                 alert("无法抓取帖子内容，请重试。");
             }
@@ -84,29 +98,48 @@ if (typeof window.xShareScriptInjected === 'undefined') {
         const iframe = document.createElement('iframe');
         iframe.style.position = 'absolute';
         iframe.style.left = '-9999px';
-        iframe.style.width = '480px';
-        // 移除固定的高度，让 iframe 自适应内容
-        // iframe.style.height = '640px';
+        iframe.style.width = '600px'; // 宽度增加到 600px，更舒展
         document.body.appendChild(iframe);
 
         const iframeDoc = iframe.contentDocument;
         iframeDoc.open();
         const stylesheetUrl = chrome.runtime.getURL('style.css');
+        
+        // X Logo SVG (小巧精致版)
+        const xLogoSvg = `<svg width="16" height="16" viewBox="0 0 24 24" class="x-logo-icon"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>`;
+
         iframeDoc.write(`
             <html>
             <head>
                 <link rel="stylesheet" href="${stylesheetUrl}">
+                <style>
+                    body { margin: 0; padding: 0; background: transparent; }
+                </style>
             </head>
             <body>
-                <div class="x-share-card">
-                    <div class="x-share-card-header">
-                        <img src="${data.authorAvatar}" class="x-share-card-avatar" />
-                        <span class="x-share-card-author">${data.authorName}</span>
-                    </div>
-                    <div class="x-share-card-content">${data.tweetContent.replace(/\n/g, '<br>')}</div>
-                    <div class="x-share-card-footer">
-                        <span>${data.tweetDate ? `${data.tweetDate} · ` : ''}来自 x.com</span>
-                        <span>分享自 X-Share</span>
+                <div class="x-share-container">
+                    <div class="x-share-card">
+                        <div class="x-share-header">
+                            <div class="x-share-user">
+                                <img src="${data.authorAvatar}" class="x-share-avatar" crossorigin="anonymous" />
+                                <div class="x-share-meta">
+                                    <div class="x-share-name">${data.authorName}</div>
+                                    <div class="x-share-handle">${data.authorHandle}</div>
+                                </div>
+                            </div>
+                            <div class="x-share-platform">
+                                ${xLogoSvg}
+                            </div>
+                        </div>
+                        
+                        <div class="x-share-body">
+                            <div class="x-share-text">${data.tweetContent.replace(/\n/g, '<br>')}</div>
+                        </div>
+
+                        <div class="x-share-footer">
+                            <div class="x-share-time">${data.tweetDate} · ${data.tweetTimeFull}</div>
+                            <div class="x-share-brand-tag">X-Share</div>
+                        </div>
                     </div>
                 </div>
             </body>
@@ -114,41 +147,31 @@ if (typeof window.xShareScriptInjected === 'undefined') {
         `);
         iframeDoc.close();
 
-        const avatarImg = iframeDoc.querySelector('.x-share-card-avatar');
+        const avatarImg = iframeDoc.querySelector('.x-share-avatar');
 
         const renderCanvas = () => {
-            const shareCard = iframeDoc.querySelector('.x-share-card');
-            // 动态设置 iframe 的高度以匹配其内容
-            iframe.style.height = `${shareCard.scrollHeight}px`;
+            const container = iframeDoc.querySelector('.x-share-container');
+            iframe.style.height = `${container.offsetHeight}px`;
 
-            html2canvas(shareCard, {
+            html2canvas(container, {
                 useCORS: true,
-                scale: 2,
-                // 使用 scrollHeight 来确保 canvas 捕捉到所有内容
-                windowWidth: shareCard.scrollWidth,
-                windowHeight: shareCard.scrollHeight,
-                allowTaint: true
+                scale: 2, // 2x 渲染保证高清
+                backgroundColor: null, // 保证背景透明
+                logging: false
             }).then(canvas => {
                 document.body.removeChild(iframe);
                 showImageModal(canvas, data.authorName);
             }).catch(err => {
-                console.error("html2canvas 渲染失败:", err);
+                console.error("渲染失败:", err);
                 document.body.removeChild(iframe);
-                alert("图片生成失败，请查看控制台获取更多信息。");
             });
         };
 
-        // 监听图片加载事件
-        avatarImg.onload = renderCanvas;
-        // 如果图片加载失败，也继续尝试渲染（可能会显示一个破碎的图片图标）
-        avatarImg.onerror = () => {
-            console.warn("头像图片加载失败，但仍将尝试生成分享图。");
-            renderCanvas();
-        };
-        
-        // 安全措施：如果图片已经加载完成（从缓存中），onload 可能不会触发
         if (avatarImg.complete) {
-            renderCanvas();
+            setTimeout(renderCanvas, 100);
+        } else {
+            avatarImg.onload = renderCanvas;
+            avatarImg.onerror = renderCanvas;
         }
     }
 
@@ -161,12 +184,13 @@ if (typeof window.xShareScriptInjected === 'undefined') {
         modalContent.className = 'x-share-modal-content';
 
         const closeButton = document.createElement('button');
-        closeButton.innerHTML = '&times;'; // 使用 '×' 符号
+        closeButton.innerHTML = '×';
         closeButton.className = 'x-share-close-button';
         closeButton.onclick = () => document.body.removeChild(modalOverlay);
 
         const generatedImage = document.createElement('img');
         generatedImage.src = imageUrl;
+        generatedImage.className = 'x-share-preview-img';
 
         const actionsWrapper = document.createElement('div');
         actionsWrapper.className = 'x-share-modal-actions';
@@ -178,14 +202,12 @@ if (typeof window.xShareScriptInjected === 'undefined') {
 
         const downloadButton = document.createElement('a');
         downloadButton.href = imageUrl;
-        downloadButton.download = `x-share-${authorName}.png`;
-        downloadButton.innerText = '下载图片';
+        downloadButton.download = `X-Share_${authorName}.png`;
+        downloadButton.innerText = '保存图片';
         downloadButton.className = 'x-share-action-button x-share-download-button';
 
         modalOverlay.onclick = (e) => {
-            if (e.target === modalOverlay) {
-                document.body.removeChild(modalOverlay);
-            }
+            if (e.target === modalOverlay) document.body.removeChild(modalOverlay);
         };
 
         actionsWrapper.appendChild(copyButton);
@@ -200,15 +222,18 @@ if (typeof window.xShareScriptInjected === 'undefined') {
     async function copyImageToClipboard(canvas, button) {
         try {
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            await navigator.clipboard.write([
-                new ClipboardItem({ 'image/png': blob })
-            ]);
-            button.innerText = '已复制!';
-            setTimeout(() => { button.innerText = '复制图片'; }, 2000);
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            const originalText = button.innerText;
+            button.innerText = '已复制';
+            button.style.background = '#10B981';
+            button.style.color = '#fff';
+            setTimeout(() => { 
+                button.innerText = originalText; 
+                button.style.background = '';
+                button.style.color = '';
+            }, 2000);
         } catch (err) {
-            console.error('无法复制图片: ', err);
-            button.innerText = '复制失败';
-            setTimeout(() => { button.innerText = '复制图片'; }, 2000);
+            console.error('复制失败: ', err);
         }
     }
 
