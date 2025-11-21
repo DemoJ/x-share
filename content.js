@@ -39,12 +39,25 @@ if (typeof window.xShareScriptInjected === 'undefined') {
         shareButton.innerText = '分享';
         shareButton.className = 'x-share-button';
 
-        shareButton.addEventListener('click', (event) => {
+        // 修改：使用 async 函数以支持等待操作
+        shareButton.addEventListener('click', async (event) => {
             event.stopPropagation();
             event.preventDefault();
 
+            // --- 新增逻辑开始 ---
+            // 检查是否有“显示更多”按钮
+            const showMoreBtn = tweetElement.querySelector('[data-testid="tweet-text-show-more-link"]');
+            if (showMoreBtn) {
+                console.log("检测到内容折叠，正在自动展开...");
+                showMoreBtn.click();
+                // 等待 500ms 让 React 完成渲染和文本展开
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            // --- 新增逻辑结束 ---
+
             const authorAvatar = tweetElement.querySelector('div[data-testid="Tweet-User-Avatar"] img[alt][draggable="true"]')?.src;
             const authorName = tweetElement.querySelector('div[data-testid="User-Name"] span').innerText;
+            // 此时获取的 innerText 应该是展开后的全文
             const tweetContent = tweetElement.querySelector('div[data-testid="tweetText"]')?.innerText;
             const timeElement = tweetElement.querySelector('time[datetime]');
             let tweetDate = '';
