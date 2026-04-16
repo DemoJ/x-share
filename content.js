@@ -98,7 +98,7 @@ if (typeof window.xShareScriptInjected === 'undefined') {
         const iframe = document.createElement('iframe');
         iframe.style.position = 'absolute';
         iframe.style.left = '-9999px';
-        iframe.style.width = '600px'; // 宽度增加到 600px，更舒展
+        iframe.style.width = '480px'; // 与容器宽度保持一致
         document.body.appendChild(iframe);
 
         const iframeDoc = iframe.contentDocument;
@@ -188,9 +188,14 @@ if (typeof window.xShareScriptInjected === 'undefined') {
         closeButton.className = 'x-share-close-button';
         closeButton.onclick = () => document.body.removeChild(modalOverlay);
 
+        // 图片滚动容器，帖子文字过多时图片可以在此区域内滚动
+        const imgWrapper = document.createElement('div');
+        imgWrapper.className = 'x-share-preview-img-wrapper';
+
         const generatedImage = document.createElement('img');
         generatedImage.src = imageUrl;
         generatedImage.className = 'x-share-preview-img';
+        imgWrapper.appendChild(generatedImage);
 
         const actionsWrapper = document.createElement('div');
         actionsWrapper.className = 'x-share-modal-actions';
@@ -213,7 +218,7 @@ if (typeof window.xShareScriptInjected === 'undefined') {
         actionsWrapper.appendChild(copyButton);
         actionsWrapper.appendChild(downloadButton);
         modalContent.appendChild(closeButton);
-        modalContent.appendChild(generatedImage);
+        modalContent.appendChild(imgWrapper);     // 将图片包含在滚动容器内挂载
         modalContent.appendChild(actionsWrapper);
         modalOverlay.appendChild(modalContent);
         document.body.appendChild(modalOverlay);

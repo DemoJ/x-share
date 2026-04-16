@@ -24,9 +24,9 @@
 
 /* --- 图片生成容器 (高级质感核心) --- */
 .x-share-container {
-    width: 600px;
+    width: 480px;
     box-sizing: border-box;
-    padding: 60px; /* 增加留白 */
+    padding: 44px; /* 适配缩小后的容器宽度 */
     /* 弥散渐变背景 - 类似 Instagram 或 Apple 的风格 */
     background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
     /* 备选方案：更商务的蓝灰渐变 */
@@ -41,12 +41,12 @@
 .x-share-card {
     width: 100%;
     background: #ffffff;
-    border-radius: 24px; /* 更大的圆角 */
-    padding: 40px;
+    border-radius: 20px;
+    padding: 32px;
     box-sizing: border-box;
     /* 双层阴影：一层做轮廓，一层做弥散 */
     box-shadow: 
-        0 20px 40px -10px rgba(0, 0, 0, 0.15),
+        0 16px 32px -8px rgba(0, 0, 0, 0.15),
         0 0 0 1px rgba(0,0,0,0.02); 
     display: flex;
     flex-direction: column;
@@ -67,11 +67,11 @@
 }
 
 .x-share-avatar {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    margin-right: 16px;
+    margin-right: 14px;
     border: 1px solid rgba(0,0,0,0.05);
 }
 
@@ -82,7 +82,7 @@
 }
 
 .x-share-name {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: #111827; /* 接近纯黑 */
     line-height: 1.2;
@@ -90,7 +90,7 @@
 }
 
 .x-share-handle {
-    font-size: 14px;
+    font-size: 13px;
     color: #6B7280; /* 灰色 */
     font-weight: 400;
 }
@@ -113,8 +113,8 @@
 }
 
 .x-share-text {
-    font-size: 20px;
-    line-height: 1.6;
+    font-size: 17px;
+    line-height: 1.65;
     color: #374151; /* 深灰色，比纯黑更舒服 */
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -173,13 +173,46 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     transform: scale(0.95);
     animation: x-share-scale 0.2s ease-out forwards;
+    /* 固定弹窗宽度，舒展而不过大 */
+    width: 540px;
+    max-width: calc(100vw - 48px);
+    /* 限制最大高度，防止超出屏幕 */
+    max-height: 85vh;
+}
+
+.x-share-preview-img-wrapper {
+    /* 图片区域独立滚动，让按钮始终固定在底部可见 */
+    overflow-y: auto;
+    /* 限制预览区高度，避免图片撑开整个弹窗 */
+    max-height: 58vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    /* 自定义细滚动条，保持深色风格 */
+    scrollbar-width: thin;
+    scrollbar-color: #4B5563 transparent;
+    margin-bottom: 16px;
+    border-radius: 8px;
+}
+
+.x-share-preview-img-wrapper::-webkit-scrollbar {
+    width: 4px;
+}
+.x-share-preview-img-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+.x-share-preview-img-wrapper::-webkit-scrollbar-thumb {
+    background-color: #4B5563;
+    border-radius: 4px;
 }
 
 .x-share-preview-img {
+    /* 宽度适配弹窗，高度自动，不限死 max-height 让滚动容器来控制 */
     max-width: 80vw;
-    max-height: 70vh;
+    width: 100%;
     border-radius: 8px;
-    margin-bottom: 20px;
+    display: block;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
@@ -187,6 +220,8 @@
     display: flex;
     gap: 12px;
     width: 100%;
+    /* 按钮区固定在底部，不参与滚动 */
+    flex-shrink: 0;
 }
 
 .x-share-action-button {
