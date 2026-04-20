@@ -175,13 +175,14 @@ if (typeof window.xShareScriptInjected === 'undefined') {
                 let rawText = tweetElement.querySelector('div[data-testid="tweetText"]')?.innerText || '';
                 tweetContent = rawText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
                 
-                // Allow sharing images from normal tweets as well!
+                // 所有图片统一竖向堆叠全宽显示，保证内容完整且布局整洁
                 const tweetImages = tweetElement.querySelectorAll('div[data-testid="tweetPhoto"] img');
                 if (tweetImages.length > 0) {
-                    let imagesHTML = `<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px;">`;
+                    let imagesHTML = `<div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">`;
                     tweetImages.forEach(img => {
-                         let imgSrc = img.src.replace(/name=small|name=medium/, 'name=large');
-                         imagesHTML += `<img src="${imgSrc}" crossorigin="anonymous" style="width: ${tweetImages.length === 1 ? '100%' : 'calc(50% - 4px)'}; border-radius: 12px; display: block;" />`;
+                        let imgSrc = img.src.replace(/name=small|name=medium/, 'name=large');
+                        // 轻微边框增加图片层次感，避免图片边缘与背景融合
+                        imagesHTML += `<img src="${imgSrc}" crossorigin="anonymous" style="width: 100%; border-radius: 12px; display: block; border: 1px solid rgba(0,0,0,0.06);" />`;
                     });
                     imagesHTML += `</div>`;
                     tweetContent += imagesHTML;
